@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="jquery.js"></script>
+    <script src="shape.js"></script>
+    <script>
+        $(function () {
+            var canvas=document.querySelector("canvas");
+            var cobj=canvas.getContext("2d");
+            var img=document.querySelector("img");
+            var obj=new shape(canvas,cobj);
+            $(".yiji").hover(function(){
+                $(this).children(".erji").css("display","block")
+            },function(){
+                $(this).children(".erji").css("display","none")
+            });
+            $(".yiji>.erji").children(":not('input')").click(function(){
+                $(this).parent(".erji").css("display","none")
+            })
+            $(".yiji").eq(0).children(".erji").children().click(function(){
+                var index=$(".yiji").eq(0).children(".erji").children().index(this);
+                if(index==0){
+                    if(obj.history.length>0){
+                        var yes=confirm("是否保存");
+                        if(yes){
+                            var url=canvas.toDataURL();
+                            var newurl=url.replace("image/png","stream/octet")
+                            location.href=newurl;
+                        }
+                        cobj.clearRect(0,0,canvas.width,canvas.height);
+                        obj.historys=[];
+                    }
+                }else if(index==1) {
+                    if (obj.history == 0) {
+                        cobj.clearRect(0, 0, canvas.width, canvas.height);
+                        setTimeout(function () {
+                            alert("不能返回");
+                        }, 10)
+                    } else {
+                        if (obj.isback) {
+                            if (obj.history.length==1) {
+                                obj.history.pop();
+                                cobj.clearRect(0, 0, canvas.width, canvas.height);
+                            }else {
+                                obj.history.pop();
+                                cobj.putImageData(obj.history.pop(), 0, 0);
+                            }
+                        }else{
+                            cobj.putImageData(obj.history.pop(), 0, 0);
+                        }
+                        obj.isback = false;
+                    }
+                }else if (index == 2) {
+                    var url=canvas.toDataURL();
+                    var newurl=url.replace("image/png","stream/octet")
+                    location.href=newurl;
+                }else if(index==3){
+                    var  file=document.querySelector("input");
+                    var img=document.querySelector("img");
+                    file.onchange=function(){
+                        var fileObj=this.files[0];
+                        var reader=new FileReader();
+                        reader.readAsDataURL(fileObj);
+                        reader.onload=function(e){
+                            img.src= e.target.result;
+                            cobj.drawImage(img,0,0,canvas.width,canvas.height)
+                            dataobj=cobj.getImageData(0,0,canvas.width,canvas.height);
+                        }
+                    }
+                }else if(index==4){
+                    $("body").append("<canvas width='1200' height='600' style='opacity:0'></canvas>");
+                    for(var i=0;i<$("canvas").length;i++){
+                        alert(2*i);
+                        $("canvas").eq(i).style.zIndex=2*i;
+                    }
+
+                }
+
+            })
+            $(".yiji").eq(1).children(".erji").children().click(function(){
+                var attr=$(this).attr("class");
+                if (attr=="jiao"||"bian"){
+                    var num=parseInt(prompt("请输入边数"));
+                    if(num>=3){
+                        obj.bianNum=num;
+                        obj.jiaoNum=num;
+                    }else{
+                        alert("边数最小为3")
+                    }
+                }
+                obj.fillType=attr;
+                obj.draw();
+            });
+            $(".yiji").eq(2).children(".erji").children().click(function(){
+                var attr=$(this).attr("class");
+                obj.style=attr;
+                obj.draw();
+            });
+            $(".yiji").eq(3).children(".erji").children().change(function(){
+                var attr=$(this).val();
+                obj.border=attr;
+                obj.fill=attr;
+                obj.draw();
+            });
+            $(".yiji").eq(4).children(".erji").children().click(function(){
+                var attr=$(this).attr("class");
+                obj.lineWidth=attr||$(this).val();
+                obj.draw();
+            })
+
+            $(".yiji").eq(5).children(".erji").children().click(function(){
+                var attr=$(this).attr("class");
+                if(attr=="blur"){
+                    var blur=new blur(dataobj,5,0,0);
+                    blur.blur()
+                }else if(attr=="fx"){
+                    var blur=new blur(dataobj,5,0,0);
+                    blur.fx()
+                }else if(attr=="msk"){
+                    var blur=new blur(dataobj,5,0,0);
+                    blur.msk()
+                }
+            })
+            $(".yiji").eq(6).children(".erji").children().click(function(){
+                var index=$(".yiji").eq(6).children(".erji").children().index(this);
+                if(index==0){
+                    cobj.clearRect(0,0,1200,600)
+                    var arr=[];
+                    t=setInterval(function () {
+                        cobj.clearRect(0,0,1200,600);
+                        arr.push(new lizi(canvas,cobj));
+                        for(var i=0;i<arr.length;i++){
+                            arr[i].draw();
+                            arr[i].update();
+                            if(arr[i].r<0){
+                                arr[i]=new lizi(canvas,cobj);
+                            }
+                        }
+                        if(arr.length>600){
+                            arr.shift();
+                        }
+                    },50)
+                }
+                if(index==1){
+                    cobj.clearRect(0,0,1200,600)
+                    var arr=[];
+                    t=setInterval(function () {
+                        cobj.clearRect(0,0,1200,600);
+                        arr.push(new fire(cobj));
+                        for(var i=0;i<arr.length;i++){
+                            arr[i].draw();
+                            arr[i].update();
+                            if(arr[i].r<0||arr[i].life<0){
+                                arr[i]=new fire(cobj);
+                            }
+                        }
+                        if(arr.length>600){
+                            arr.shift();
+                        }
+                    },50)
+                }
+                if(index==2){
+                    cobj.clearRect(0,0,1200,600)
+                    clearInterval(t);
+                }
+
+            })
+        })
+    </script>
+</head>
+<body>
+<canvas width="1200" height="600"></canvas>
+<div class="plugins">
+    <div class="yiji">
+        <span>文件</span>
+        <div class="erji">
+            <div>新建</div>
+            <div>返回</div>
+            <div>保存</div>
+            <div>打开<input type="file"></div>
+            <div>新建图层</div>
+        </div>
+    </div>
+    <div class="yiji">
+        <span>工具</span>
+        <div class="erji">
+            <div class="pencil">铅笔</div>
+            <div class="line">画线</div>
+            <div class="rect">矩形</div>
+            <div class="arc">圆</div>
+            <div class="bian">多边形</div>
+            <div class="jiao">多角形</div>
+        </div>
+    </div>
+    <div class="yiji">
+        <span>画图方式</span>
+        <div class="erji">
+            <div class="fill">填充</div>
+            <div class="stroke">描边</div>
+        </div>
+    </div>
+    <div class="yiji">
+        <span>颜色</span>
+        <div class="erji">
+            <input type="color">
+            <input type="color">
+        </div>
+    </div>
+    <div class="yiji">
+        <span>线条宽度</span>
+        <div class="erji">
+            <div class="1">细</div>
+            <div class="3">中</div>
+            <div class="5">粗</div>
+            <input type="number" min="0" value="1">
+        </div>
+    </div>
+    <div class="yiji">
+        <span>模糊</span>
+        <div class="erji">
+            <div class="blur">模糊</div>
+            <div class="fx">反向</div>
+            <div class="msk">马赛克</div>
+        </div>
+    </div>
+    <div class="yiji">
+        <span>动画</span>
+        <div class="erji">
+            <div>粒子动画</div>
+            <div>火焰</div>
+            <div>停止</div>
+        </div>
+    </div>
+    <div class="yiji">
+        <span>擦除</span>
+        <div class="erji">
+            <div class="fill"></div>
+            <div class="stroke"></div>
+        </div>
+    </div>
+</div>
+<img src="" alt="" hidden>
+</body>
+</html>
